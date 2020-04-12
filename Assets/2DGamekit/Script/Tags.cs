@@ -9,7 +9,7 @@ public class Tags
     public static string VerticalSpeed = "VerticalSpeed";
     public static string TimeOut = "TimeOut";
     public static string Crouching = "Crouching";
-    public static string Grounded = "Grounded";
+    public static string Grounded = "IsGrounded";
     public static string Pushing = "Pushing";
     public static string Hurt = "Hurt";
     public static string Dead = "Dead";

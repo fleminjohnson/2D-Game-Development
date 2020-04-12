@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MotionHandler : MonoBehaviour
 {
@@ -8,6 +9,12 @@ public class MotionHandler : MonoBehaviour
     private Rigidbody2D rb;
     private bool isFacingRight = true;
     private float speed = 5.0f;
+    private float groundCheckRadius = 0.2f;
+
+    public LayerMask groundLayer;
+    public Transform groundCheck;
+    public float jumpHeight;
+    public float health = 4;
 
     void Awake()
     {
@@ -23,31 +30,26 @@ public class MotionHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float move = Input.GetAxis(Tags.Horizontal);
-        //float jump =Input.GetAxis(Tags.Jump);
+        Jumping();
+        Crouching();
+        if (transform.position.y < -5) Death();
+    }
 
-        playerAnimator.SetFloat(Tags.HorizontalSpeed, Mathf.Abs(move));
-        rb.velocity = new Vector2(move * speed, rb.velocity.y);
-        print(rb.velocity.y);
-        if (move < 0 & isFacingRight)
-        {
-            Flip();
-        }
-        else if (move > 0 & !isFacingRight)
-        {
-            Flip();
-        }
+    private void FixedUpdate()
+    {
+        Walking();
+        playerAnimator.SetBool(Tags.Grounded, Overlaping());
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            playerAnimator.SetTrigger(Tags.Jump);
-        }
+    void Flip()
+    {
+        isFacingRight = !isFacingRight;
+        Vector2 dimension = transform.localScale;
+        transform.localScale = new Vector2(-1 * dimension.x, dimension.y);
+    }
 
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            playerAnimator.SetBool(Tags.Crouching, !playerAnimator.GetBool(Tags.Crouching));
-        }
-
+    void Pushing()
+    {
         if (Input.GetKeyDown(KeyCode.P))
         {
             playerAnimator.SetBool(Tags.Pushing, true);
@@ -59,10 +61,71 @@ public class MotionHandler : MonoBehaviour
         }
     }
 
-    void Flip()
+    void Walking()
     {
-        isFacingRight = !isFacingRight;
-        Vector2 dimension = transform.localScale;
-        transform.localScale = new Vector2(-1 * dimension.x, dimension.y);
+        float move = Input.GetAxis(Tags.Horizontal);
+        if (!playerAnimator.GetBool(Tags.Crouching))
+        {
+            playerAnimator.SetFloat(Tags.HorizontalSpeed, Mathf.Abs(move));
+            rb.velocity = new Vector2(move * speed, rb.velocity.y);
+
+        }
+        else
+        {
+            playerAnimator.SetFloat(Tags.HorizontalSpeed, 0.0f);
+            rb.velocity = new Vector2(0.0f,0.0f);
+        }
+        if (move < 0 & isFacingRight)
+        {
+            Flip();
+        }
+        else if (move > 0 & !isFacingRight)
+        {
+            Flip();
+        }
+    }
+
+    void Jumping()
+    {
+        if (playerAnimator.GetBool(Tags.Grounded) & Input.GetKeyDown(KeyCode.Space))
+        {
+            playerAnimator.SetBool(Tags.Grounded, false);
+            rb.velocity = new Vector2(0.0f, 20.0f);
+            playerAnimator.SetFloat(Tags.VerticalSpeed, Input.GetAxis(Tags.Jump));
+        }
+    }
+
+    void Crouching()
+    {
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            playerAnimator.SetBool(Tags.Crouching, !playerAnimator.GetBool(Tags.Crouching));
+        }
+    }
+
+    void Death()
+    {
+        playerAnimator.SetBool(Tags.Dead, true);
+        LevelController.gameOver = true;
+        Invoke("Restart", 2);
+    }
+
+    void Restart()
+    {
+        SceneManager.LoadScene(1);
+    }
+
+    bool Overlaping()
+    {
+        return Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (health == 0) Death();
+        if(collision.collider.tag == "Enemy")
+        {
+            health -= 1;
+        }
     }
 }
