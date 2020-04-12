@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\2DGamekit\Script\CameraController.cs" />
+    <Compile Include="Assets\2DGamekit\Script\CollectiblesBehaviour.cs" />
     <Compile Include="Assets\2DGamekit\Script\LevelController.cs" />
     <Compile Include="Assets\2DGamekit\Script\MotionHandler.cs" />
     <Compile Include="Assets\2DGamekit\Script\Tags.cs" />
